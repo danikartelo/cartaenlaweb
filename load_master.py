@@ -11,4 +11,9 @@ __email__ = ["info@cartaenlaweb.com","daniel.teleco@gmail.com"]
 __status__ = "Production"
 
 
-print("hola")
+class Section:
+  def __init__(self, name):
+    self.name = name
+    self.text = '[vc_tta_section tab_id="' + self.name.lower()  +'" title="'+ self.name.capitalize() + '"]'
+  def __str__(self):
+    return self.text
