@@ -1,5 +1,4 @@
-
-
+import allergens
 class MasterClass:
     def __init__(self,file):
         self.content = open(file, "r").read()
@@ -157,7 +156,7 @@ class MasterClass:
         temp = self.content.find("]",temp) +1
         if x < temp:
             x = temp
-            print("BBBBBBBBB")
+            # print("BBBBBBBBB")
         # ini_out = self.content.find("]",x)      # Buscar el [ previo = inicio estructura
         ini_out = x
         outro = self.content[ini_out:]
@@ -181,14 +180,19 @@ class MasterClass:
         # new = self.dish[:d] + "image=\"" + str(int(df["imagen"][i])) + "\"" + self.dish[e:]
         # return(new)
 
+        # print(self.dish )
+
+        # self.dish  = self.__add_price_html(i)
         self.dish  = self.__add_name(i)
         self.dish  = self.__add_photo(i)
         self.dish  = self.__add_price(i)
         self.dish  = self.__add_description(i)
+        self.dish  = self.__add_allergen(i)
 
         new_dish = self.dish
         # print("AAAAAAAAAAA")
         # print(new_dish)
+
         if str(df["separador previo"][i]) != str("nan") :  # revisar esto, si es texto vacio me da que peta
             # print(df["separador previo"][i])
             # print("previo "+ str(i))
@@ -220,6 +224,9 @@ class MasterClass:
 
     def __add_price(self,i):
         c = self.dish.find("el_id=\"precio\"")
+        if c == -1:
+            print("CCCCCCCCCCCCC")
+            return(self.dish)
         d = self.dish.rfind("vc_custom_heading text",0,c)
         e = self.dish.find("\" ",d) + 1
         # print (df["precio"][i])
@@ -229,14 +236,43 @@ class MasterClass:
         if not (isinstance(df["precio"][i], str)):      # para prevenir que no sea str
             # print("NO LO ES")
             a = '{:.2f} €'.format(df["precio"][i])
-        new = self.dish[:d] + "vc_custom_heading text=\"" + str(a) + "\"" + self.dish[e:]
+        new = self.dish[:d] + "vc_custom_heading text=\""+ str(a) + "\"" + self.dish[e:]
         return(new)
+
+    # def __add_price_html(self,i):
+    #     c = self.dish.find("el_id=\"p_html\"")
+    #     print("11111111111")
+    #     if c == -1:
+    #         print("BBBBBBBB")
+    #         return(self.dish)
+    #
+    #     pos = self.dish.find(">",c)  # esto esta cogido con pinzas, segunod >, pero esto será asi siempre???
+    #     print(pos)
+    #     #pos = self.dish.find(">",pos+1) +1
+    #
+    #     pos +=1
+    #     # d = self.dish.rfind("vc_custom_heading text",0,c)
+    #     e = self.dish.find("</p>",pos) #+ 1
+    #     new = self.dish[:pos] + str(df["precio"][i]) + self.dish[e:]
+    #     print("AAAAAAAAAAAAAA")
+    #     print(new)
+    #     return(new)
+
 
 
     def __add_description(self,i):
         c = self.dish.find("el_id=\"descripcion\"")
         if c == -1:
             return(self.dish)
+        pos_ini_cor = self.dish.find("]",c)
+        pos_end_cor= self.dish.find("[]",c) #+ 1
+
+        string_description = str(df["descripcion"][i])
+        if str(string_description) == 'nan' :
+            print("UUUUUUUU")
+            string_description = str("")
+            new = self.dish[:pos_ini_cor+1] + str(string_description) + self.dish[(pos_end_cor):]
+
         pos = self.dish.find(">",c)  # esto esta cogido con pinzas, segunod >, pero esto será asi siempre???
         # print(pos)
         # pos = self.dish.find(">",pos+1) +1
@@ -244,13 +280,64 @@ class MasterClass:
         pos +=1
         # d = self.dish.rfind("vc_custom_heading text",0,c)
         e = self.dish.find("</p>",pos) #+ 1
-        new = self.dish[:pos] + str(df["descripcion"][i]) + self.dish[e:]
+        new = self.dish[:pos] + str(string_description)  + self.dish[e:]
+
+        return(new)
+
+    def __do_allergens(self,array_allegerns):
+
+        dish_allergen = ('<div class="wpb_single_image wpb_content_element vc_align_center">'
+                        '<figure class="wpb_wrapper vc_figure">')
+
+        for element in array_allegerns:
+             # print(allegern[element]())
+             dish_allergen = dish_allergen + ('<div class="vc_single_image-wrapper vc_box_border_grey">'
+                            '<img class="vc_single_image-img"')
+             dish_allergen = dish_allergen + str(allergens.allegern[element]())
+
+        dish_allergen = dish_allergen + ('</figure></div>')
+        return(dish_allergen)
+
+    def __add_allergen(self,i):
+        c = self.dish.find("el_id=\"alergenos\"")
+        if c == -1:
+            return(self.dish)
+        pos = self.dish.find("]",c)  # esto esta cogido con pinzas, segunod >, pero esto será asi siempre???
+        print(pos)
+        print (self.dish[c:c+30])
+        # pos = self.dish.find(">",pos+1) +1
+
+        # pos +=1
+        # d = self.dish.rfind("vc_custom_heading text",0,c)
+        e = self.dish.find("[",pos) #+ 1
+        print(e)
+
+        string_allergen = df["alergenos"][i]
+        if str(string_allergen) == 'nan' :
+            print("WWWWWWWWWW")
+            string_allergen = str("")
+            new = self.dish[:pos+1] + str(string_allergen) + self.dish[(e):]
+
+            return(new)
+
+            # return(self.dish)
+        print('QQQQQQQQ')
+        print(string_allergen)
+        string_allergen = string_allergen.strip()
+        array_allergen = string_allergen.split(',')
+        for i in range(len(array_allergen)):
+            array_allergen[i] = array_allergen[i].strip()
+        # print(b)
+
+        alls = self.__do_allergens(array_allergen)
+        new = self.dish[:pos+1] + str(alls) + self.dish[e:]
+
         return(new)
 
 section_dish = ""
 import pandas as pd
-MASTER_FILE = "./master/master_page.txt"
-CARTA = "./carta/carta.xls"
+MASTER_FILE = "./master/master_page_monje.txt"
+CARTA = "./carta/carta_monje.xls"
 master = MasterClass (MASTER_FILE)
 
 
@@ -258,7 +345,6 @@ master = MasterClass (MASTER_FILE)
 
 # num_sections = master.get_num_sections()
 # print(num_sections)
-
 
 
 # master.get_section(1)
